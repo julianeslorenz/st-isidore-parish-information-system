@@ -1,0 +1,215 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Typography, global defaults and behaviour that is awkward as utilities. */
+@layer base {
+  html {
+    scroll-padding-top: env(safe-area-inset-top, 0px);
+  }
+  body {
+    @apply bg-paper font-sans text-sm text-ink antialiased;
+    line-height: 1.5;
+    margin: 0;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply text-ink;
+    margin: 0;
+    font-family: theme('fontFamily.serif');
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  h1 { font-size: 28px; line-height: 1.2; }
+  h2 { font-size: 20px; }
+  h3 { font-size: 17px; }
+  h4 {
+    font-family: theme('fontFamily.sans');
+    font-size: 14px;
+    letter-spacing: 0;
+  }
+  button { cursor: pointer; }
+  button:disabled { cursor: not-allowed; }
+  a:focus-visible,
+  button:focus-visible,
+  [tabindex]:focus-visible,
+  summary:focus-visible {
+    outline: 2px solid theme('colors.gold');
+    outline-offset: 2px;
+  }
+  input[type='checkbox']:not(.toggle),
+  input[type='radio'] {
+    accent-color: theme('colors.wine');
+    width: 17px;
+    height: 17px;
+    flex: none;
+  }
+}
+
+@layer components {
+  .field-select {
+    appearance: none;
+    padding-right: 34px;
+    background: #fff
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none' stroke='%23857D76' stroke-width='1.8'%3E%3Cpath d='m1 1.5 5 5 5-5'/%3E%3C/svg%3E")
+      no-repeat right 12px center;
+  }
+  .field-select:disabled {
+    background-color: theme('colors.paper');
+  }
+
+  .toggle {
+    appearance: none;
+    width: 40px;
+    height: 23px;
+    border-radius: 999px;
+    background: theme('colors.line-2');
+    position: relative;
+    transition: 0.15s;
+    cursor: pointer;
+    flex: none;
+  }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    background: #fff;
+    transition: 0.15s;
+  }
+  .toggle:checked { background: theme('colors.wine'); }
+  .toggle:checked::after { left: 20px; }
+
+  /* Vertical timeline used for request history, activity and sacrament history. */
+  .timeline { position: relative; padding-left: 26px; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 6px;
+    bottom: 6px;
+    width: 1px;
+    background: theme('colors.line-2');
+  }
+  .timeline-item { position: relative; padding-bottom: 16px; }
+  .timeline-item:last-child { padding-bottom: 0; }
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -23px;
+    top: 5px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid theme('colors.line-2');
+  }
+  .timeline-item[data-state='current']::before {
+    border-color: theme('colors.gold');
+    background: theme('colors.gold');
+  }
+  .timeline-item[data-state='done']::before {
+    border-color: theme('colors.wine');
+    background: theme('colors.wine');
+  }
+
+  /* Horizontal stepper (request wizard and request/certificate progress). */
+  .stepper { display: flex; }
+  .stepper-step {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    position: relative;
+    text-align: center;
+    font-size: 12.5px;
+    color: theme('colors.ink-3');
+    font-weight: 500;
+  }
+  .stepper-step::before {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: -50%;
+    width: 100%;
+    height: 2px;
+    background: theme('colors.line-2');
+  }
+  .stepper-step:first-child::before { display: none; }
+  .stepper-dot {
+    position: relative;
+    z-index: 1;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid theme('colors.line-2');
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: theme('colors.ink-3');
+  }
+  .stepper-step[data-state='done'] { color: theme('colors.ink'); }
+  .stepper-step[data-state='done'] .stepper-dot {
+    background: theme('colors.wine');
+    border-color: theme('colors.wine');
+    color: #fff;
+  }
+  .stepper-step[data-state='done']::before,
+  .stepper-step[data-state='current']::before { background: theme('colors.wine'); }
+  .stepper-step[data-state='current'] { color: theme('colors.ink'); }
+  .stepper-step[data-state='current'] .stepper-dot {
+    border-color: theme('colors.gold');
+    color: theme('colors.wine');
+    box-shadow: 0 0 0 4px theme('colors.gold-1');
+  }
+  .stepper.compact .stepper-dot { width: 26px; height: 26px; font-size: 12px; }
+  .stepper.compact .stepper-step::before { top: 12px; }
+
+  /* Loading */
+  .skeleton {
+    height: 12px;
+    border-radius: 6px;
+    background: linear-gradient(90deg, #eee8df 25%, #f7f3ec 50%, #eee8df 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.3s infinite;
+  }
+  .spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    animation: rotate 0.7s linear infinite;
+  }
+  .typing-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: theme('colors.ink-3');
+    animation: blink 1s infinite;
+  }
+  .typing-dot:nth-child(2) { animation-delay: 0.15s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.3s; }
+}
+
+@keyframes rotate { to { transform: rotate(360deg); } }
+@keyframes shimmer { to { background-position: -200% 0; } }
+@keyframes blink { 50% { opacity: 0.25; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton, .spinner, .typing-dot { animation: none; }
+  html { scroll-behavior: auto; }
+}
+
+@media print {
+  .no-print { display: none !important; }
+}
