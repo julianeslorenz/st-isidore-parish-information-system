@@ -30,6 +30,62 @@ def test_new_account_cannot_sign_in_until_email_is_verified(client):
     assert client.post("/api/v1/auth/verify-email", json={"token": token}).status_code == 200
 
 
+def test_admin_can_update_user_email_and_name(client):
+    admin_token = token_for(client, "admin@example.org")
+    headers = {"Authorization": f"Bearer {admin_token}"}
+    created = client.post("/api/v1/users", headers=headers, json={
+        "email": "staff-old@example.org",
+        "name": "Staff Member",
+        "password": "TemporaryPass123!",
+        "role": "Parish Staff",
+    })
+    assert created.status_code == 201
+
+    response = client.patch(f"/api/v1/users/{created.json()['id']}", headers=headers, json={
+        "email": "Staff.New@Example.org",
+        "name": "Updated Staff Member",
+    })
+    assert response.status_code == 200
+    assert response.json()["email"] == "staff.new@example.org"
+    assert response.json()["name"] == "Updated Staff Member"
+
+
+def test_admin_user_email_update_rejects_invalid_or_duplicate_email(client):
+    admin_token = token_for(client, "admin@example.org")
+    headers = {"Authorization": f"Bearer {admin_token}"}
+    first = client.post("/api/v1/users", headers=headers, json={
+        "email": "first-staff@example.org",
+        "name": "First Staff",
+        "password": "TemporaryPass123!",
+        "role": "Parish Staff",
+    }).json()
+    client.post("/api/v1/users", headers=headers, json={
+        "email": "second-staff@example.org",
+        "name": "Second Staff",
+        "password": "TemporaryPass123!",
+        "role": "Priest",
+    })
+
+    invalid = client.patch(f"/api/v1/users/{first['id']}", headers=headers, json={"email": "not-an-email"})
+    duplicate = client.patch(f"/api/v1/users/{first['id']}", headers=headers, json={"email": "second-staff@example.org"})
+    assert invalid.status_code == 422
+    assert duplicate.status_code == 409
+
+
+def test_only_admin_can_update_user_email(client):
+    admin_token = token_for(client, "admin@example.org")
+    headers = {"Authorization": f"Bearer {admin_token}"}
+    created = client.post("/api/v1/users", headers=headers, json={
+        "email": "staff-protected@example.org",
+        "name": "Protected Staff",
+        "password": "TemporaryPass123!",
+        "role": "Parish Staff",
+    }).json()
+    secretary_token = token_for(client, "secretary@example.org")
+    response = client.patch(f"/api/v1/users/{created['id']}", headers={"Authorization": f"Bearer {secretary_token}"}, json={"email": "changed@example.org"})
+    assert response.status_code == 403
+
+
 def test_parishioner_can_delete_their_account_after_password_confirmation(client):
     email = "delete-member@example.org"
     password = "strong-pass-123"

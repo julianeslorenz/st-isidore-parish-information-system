@@ -193,6 +193,8 @@ class ConversationUpdate(BaseModel):
 
 
 class UserUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=160)
+    email: EmailStr | None = None
     role: Literal["Admin", "Parish Secretary", "Parish Staff", "Priest", "Parishioner"] | None = None
     status: Literal["active", "inactive"] | None = None
 

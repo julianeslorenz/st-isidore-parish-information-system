@@ -28,6 +28,17 @@ FastAPI REST service for the React parish information system. MySQL is the inten
    uvicorn app.main:app --reload
    ```
 
+## Add sample sacramental records
+
+For local testing, the Docker backend includes a seed script that adds one clearly marked `DEMO-` record per sacrament. From the project root, rebuild the backend and run the script:
+
+```powershell
+docker compose --env-file .env.docker up -d --build backend
+docker compose --env-file .env.docker exec backend python -m scripts.seed_demo_records
+```
+
+The script is safe to run again; it fills or refreshes the existing records and creates matching certificate drafts with the same `DEMO-` numbers instead of duplicating them. The sample details include parents, sponsors, ministers, parish, registry references, purpose, and the fields used by the certificate layouts. The drafts stay in `processing` so an authorized staff account can preview/print the sample PDFs. Delete the samples from **Sacramental records** and **Certificates** pages when finished testing.
+
 The API docs are at `http://localhost:8000/docs`; health check is `http://localhost:8000/health`. `AUTO_CREATE_TABLES` is a development convenience for a new database. Use reviewed, versioned migrations before production upgrades.
 
 ## API areas

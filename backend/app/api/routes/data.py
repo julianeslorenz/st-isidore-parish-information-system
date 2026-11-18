@@ -430,7 +430,20 @@ def update_user(user_id: int, payload: UserUpdate, admin: AdminUser, db: DbSessi
     row = db.get(User, user_id)
     if not row: raise HTTPException(404, "User not found")
     if row.id == admin.id and payload.status == "inactive": raise HTTPException(409, "You cannot deactivate your own account")
-    for key, value in payload.model_dump(exclude_unset=True).items(): setattr(row, key, value)
+    changes = payload.model_dump(exclude_unset=True)
+    if changes.get("name") is not None:
+        changes["name"] = changes["name"].strip()
+        if not changes["name"]:
+            raise HTTPException(422, "Name cannot be blank")
+    if changes.get("email") is not None:
+        email = str(changes["email"]).strip().lower()
+        duplicate = db.scalar(select(User.id).where(User.email == email, User.id != row.id))
+        if duplicate:
+            raise HTTPException(409, "An account with this email already exists")
+        changes["email"] = email
+    for key, value in changes.items():
+        if value is not None:
+            setattr(row, key, value)
     db.commit(); db.refresh(row)
     return row
 

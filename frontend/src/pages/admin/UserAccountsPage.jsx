@@ -23,17 +23,24 @@ import { isEmail } from '../../utils/format.js';
 function UserForm({ user, onClose, onSave }) {
   const [form, setForm] = useState({ name: user?.name ?? '', email: user?.email ?? '', role: user?.role ?? 'Parish Staff', password: '' });
   const [errors, setErrors] = useState({});
+  const [saving, setSaving] = useState(false);
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
-  const submit = () => {
+  const submit = async () => {
     const found = {};
     if (!form.name.trim()) found.name = 'Enter the full name';
     if (!isEmail(form.email)) found.email = 'Enter a valid email address';
     if (!user && form.password.length < 12) found.password = 'Use a temporary password of at least 12 characters';
     setErrors(found);
-    if (!Object.keys(found).length) onSave({ ...form, name: form.name.trim(), email: form.email.trim() });
+    if (Object.keys(found).length) return;
+    setSaving(true);
+    const result = await onSave({ ...form, name: form.name.trim(), email: form.email.trim() });
+    setSaving(false);
+    if (result) onClose();
+    else setErrors({ form: 'Could not save the account. Check the email address and try again.' });
   };
   return (
-    <Modal open onClose={onClose} title={user ? 'Edit user' : 'Add user'} footer={<><Button variant="secondary" onClick={onClose}>Cancel</Button><Button onClick={submit}>{user ? 'Save changes' : 'Add user'}</Button></>}>
+    <Modal open onClose={onClose} title={user ? 'Edit user' : 'Add user'} footer={<><Button variant="secondary" onClick={onClose}>Cancel</Button><Button loading={saving} onClick={submit}>{user ? 'Save changes' : 'Add user'}</Button></>}>
+      {errors.form && <p className="mb-3 text-[13px] text-bad" role="alert">{errors.form}</p>}
       <FormGrid>
         <TextField full label="Full name" value={form.name} onChange={set('name')} error={errors.name} />
         <TextField full label="Email address" type="email" value={form.email} onChange={set('email')} error={errors.email} />
@@ -108,7 +115,11 @@ export default function UserAccountsPage() {
           <KeyValue labelWidth={100} items={[['Email', target.email], ['Role', target.role], ['Last login', target.lastLogin], ['Created', target.created]]} />
         </Modal>
       )}
-      {dialog?.kind === 'form' && <UserForm user={target} onClose={close} onSave={(u) => { saveUser(target ? { ...u, id: target.id } : u); close(); toast('User saved'); }} />}
+      {dialog?.kind === 'form' && <UserForm user={target} onClose={close} onSave={async (u) => {
+        const result = await saveUser(target ? { ...u, id: target.id } : u);
+        if (result) toast('User saved');
+        return result;
+      }} />}
       {dialog?.kind === 'toggle' && target && (isSelf(target) && target.status === 'active' ? (
         <Modal open onClose={close} title="You cannot deactivate yourself" footer={<Button onClick={close}>OK</Button>}>Ask another administrator to deactivate your account.</Modal>
       ) : (

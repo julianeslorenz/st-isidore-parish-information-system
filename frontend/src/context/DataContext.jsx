@@ -114,7 +114,9 @@ export function DataProvider({ children }) {
   const togglePriest = useCallback((id) => { const p = data.priests.find((x) => x.id === id); return p && mutate(() => patch(`/priests/${id}`, { name: p.name, title: p.role, email: p.email || null, phone: p.phone || null, sacraments: p.sacraments || [], description: p.availability, active: p.status !== 'active' })); }, [data.priests, mutate]);
   const saveRecord = useCallback((record) => mutate(() => record.id ? patch(`/records/${record.id}`, record.payload) : post('/records', record.payload)), [mutate]);
   const deleteRecord = useCallback((id) => mutate(async () => { await remove(`/records/${id}`); return { deleted: true }; }), [mutate]);
-  const saveUser = useCallback((u) => mutate(() => u.id ? patch(`/users/${u.id}`, { role: u.role }) : post('/users', { name: u.name, email: u.email, password: u.password, role: u.role })), [mutate]);
+  const saveUser = useCallback((u) => mutate(() => u.id
+    ? patch(`/users/${u.id}`, { name: u.name, email: u.email, role: u.role })
+    : post('/users', { name: u.name, email: u.email, password: u.password, role: u.role })), [mutate]);
   const toggleUser = useCallback((id) => { const u = data.users.find((x) => x.id === id); return u && mutate(() => patch(`/users/${id}`, { status: u.status === 'active' ? 'inactive' : 'active' })); }, [data.users, mutate]);
   const addCertificate = useCallback((name, type, details = {}) => mutate(() => post(data.account && data.account.role === 'Parishioner' ? '/certificates/request' : '/certificates', { person_name: name, certificate_type: type, details })), [data.account, mutate]);
   const updateCertificateDetails = useCallback((id, name, details) => mutate(() => patch(`/certificates/${id}/details`, { person_name: name, details })), [mutate]);
