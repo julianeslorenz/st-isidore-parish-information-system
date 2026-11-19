@@ -41,7 +41,7 @@ export default function SacramentsPage() {
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gold-1 text-gold-d"><Award size={22} aria-hidden="true" /></div>
             <div className="min-w-[220px] flex-1">
               <b>About certificates</b>
-              <div className="text-[12.5px] text-ink-2">Official certificates are printed on parish paper, signed by the parish priest and released by the parish office. They are not downloadable.</div>
+              <div className="text-[12.5px] text-ink-2">The parish office verifies each record and prepares the certificate on the parish's supplied paper, which already carries the priest's signature. Certificates are released at the parish office.</div>
             </div>
           </CardBody>
         </Card>

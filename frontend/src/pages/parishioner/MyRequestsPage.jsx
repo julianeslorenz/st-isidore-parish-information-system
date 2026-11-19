@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, FileText, MessageSquare, Plus } from 'lucide-react';
 import PortalPage from '../../components/layout/PortalPage.jsx';
 import PageHeader from '../../components/ui/PageHeader.jsx';
@@ -73,7 +74,14 @@ function RequestDetail({ request, onBack }) {
 
 export default function MyRequestsPage() {
   const { myRequests } = useData();
-  const [selectedId, setSelectedId] = useState(null);
+  const [params, setParams] = useSearchParams();
+  const requestedId = params.get('requestId');
+  const [selectedId, setSelectedId] = useState(requestedId);
+  useEffect(() => {
+    if (!requestedId || !myRequests.some((request) => request.id === requestedId)) return;
+    setSelectedId(requestedId);
+    setParams((current) => { const next = new URLSearchParams(current); next.delete('requestId'); return next; }, { replace: true });
+  }, [requestedId, myRequests, setParams]);
   const selected = myRequests.find((r) => r.id === selectedId);
 
   return (

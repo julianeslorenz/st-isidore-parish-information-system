@@ -39,19 +39,23 @@ export async function downloadFile(path, filename) {
   window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
 }
 
+export async function getPdfObjectUrl(path) {
+  const headers = new Headers();
+  const token = getToken();
+  if (token) headers.set('Authorization', `Bearer ${token}`);
+  const response = await fetch(`${API_BASE}${path}`, { headers });
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error(body.detail || 'The certificate PDF could not be opened.');
+  }
+  return URL.createObjectURL(await response.blob());
+}
+
 export async function openPdf(path) {
   const tab = window.open('about:blank', '_blank');
   if (!tab) throw new Error('Allow pop-ups to open the certificate PDF.');
   try {
-    const headers = new Headers();
-    const token = getToken();
-    if (token) headers.set('Authorization', `Bearer ${token}`);
-    const response = await fetch(`${API_BASE}${path}`, { headers });
-    if (!response.ok) {
-      const body = await response.json().catch(() => ({}));
-      throw new Error(body.detail || 'The certificate PDF could not be opened.');
-    }
-    const objectUrl = URL.createObjectURL(await response.blob());
+    const objectUrl = await getPdfObjectUrl(path);
     tab.location.href = objectUrl;
     window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
   } catch (error) {

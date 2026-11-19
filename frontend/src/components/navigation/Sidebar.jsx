@@ -38,7 +38,7 @@ export default function Sidebar({ screens, account, open, onNavigate }) {
               <NavLink key={s.key} to={s.to} onClick={onNavigate} className={({ isActive }) => cn(linkBase, isActive && linkActive)}>
                 <s.icon size={19} aria-hidden="true" />
                 {s.label}
-                {s.badge && <span className="ml-auto rounded-full bg-gold px-[7px] text-[11.5px] font-semibold leading-[18px] text-gold-ink">{s.badge}</span>}
+                {Number(s.badge) > 0 && <span className="ml-auto inline-flex min-w-[20px] items-center justify-center rounded-full bg-gold px-[7px] text-[11.5px] font-semibold leading-[18px] text-gold-ink" aria-label={`${s.badge} notifications`}>{s.badge}</span>}
               </NavLink>
             ))}
           </div>

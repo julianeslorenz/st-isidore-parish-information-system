@@ -327,9 +327,9 @@ def request_appointment_reschedule(appointment_id: int, payload: RescheduleReque
 
 @router.get("/certificates")
 def list_certificates(user: CurrentUser, db: DbSession):
-    if user.role == "Parish Staff": raise HTTPException(403, "Certificate workflow access required")
+    if user.role in {"Parish Staff", "Priest"}: raise HTTPException(403, "Certificate workflow access required")
     query = select(Certificate).order_by(Certificate.created_at.desc())
-    if user.role not in {"Admin", "Parish Secretary", "Parish Staff", "Priest"}:
+    if user.role not in {"Admin", "Parish Secretary"}:
         query = query.where(or_(Certificate.requester_id == user.id, Certificate.request_id.in_(select(SacramentRequest.id).where(SacramentRequest.requester_id == user.id))))
     return [{"id": c.id, "number": c.number, "name": c.person_name, "type": c.certificate_type, "status": c.status, "date": c.created_at.isoformat(), "history": c.history or [], "details": c.details or {}} for c in db.scalars(query).all()]
 
@@ -355,7 +355,7 @@ def update_certificate_details(certificate_id: int, payload: CertificateDetailsU
     row = db.get(Certificate, certificate_id)
     if not row:
         raise HTTPException(404, "Certificate not found")
-    if row.status not in {"processing", "signature"}:
+    if row.status != "processing":
         raise HTTPException(409, "Certificate details can only be edited while it is being prepared")
     row.person_name = payload.person_name.strip()
     row.details = payload.details
@@ -371,7 +371,7 @@ def get_certificate_pdf(certificate_id: int, _: OfficeStaff, db: DbSession, back
     row = db.get(Certificate, certificate_id)
     if not row:
         raise HTTPException(404, "Certificate not found")
-    if row.status not in {"processing", "signature"}:
+    if row.status != "processing":
         raise HTTPException(409, "Only certificates being prepared can be printed for review")
     try:
         pdf_bytes = build_certificate_pdf(row, include_background=background)
@@ -390,11 +390,10 @@ def get_certificate_pdf(certificate_id: int, _: OfficeStaff, db: DbSession, back
 def update_certificate(certificate_id: int, payload: CertificateUpdate, user: CertificateStaff, db: DbSession):
     row = db.get(Certificate, certificate_id)
     if not row: raise HTTPException(404, "Certificate not found")
-    next_status = {"processing": "signature", "signature": "ready", "ready": "released"}.get(row.status)
+    next_status = {"processing": "ready", "ready": "released"}.get(row.status)
     if payload.status == "revoked" and user.role != "Admin": raise HTTPException(403, "Administrator access required to revoke certificates")
-    if payload.status == "ready" and row.status == "signature" and user.role not in {"Admin", "Priest"}: raise HTTPException(403, "A priest must sign certificates")
-    if payload.status == "released" and row.status == "ready" and user.role not in {"Admin", "Parish Secretary"}: raise HTTPException(403, "A parish secretary must release certificates")
-    if payload.status == "signature" and row.status == "processing" and user.role not in {"Admin", "Parish Secretary"}: raise HTTPException(403, "Only an administrator or parish secretary can prepare certificates")
+    if payload.status in {"ready", "released"} and user.role not in {"Admin", "Parish Secretary"}:
+        raise HTTPException(403, "Only parish office staff can prepare or release certificates")
     if payload.status not in {next_status, "cancelled", "revoked"}:
         raise HTTPException(409, "That certificate status transition is not allowed")
     if row.status in {"released", "cancelled", "revoked"}:
@@ -594,7 +593,7 @@ def request_report(_: StaffUser, db: DbSession, months: int = Query(default=6, g
                         labels = {
                             "Appointments": {"scheduled": "Scheduled", "confirmed": "Confirmed", "pending": "Pending", "rescheduled": "Rescheduled", "cancelled": "Cancelled", "completed": "Completed"},
                             "Parishioners": {"active": "Active", "inactive": "Inactive"},
-                            "Certificates": {"processing": "In preparation", "signature": "Awaiting signature", "ready": "Ready for release", "released": "Released", "cancelled": "Cancelled", "revoked": "Revoked"},
+                            "Certificates": {"processing": "In preparation", "ready": "Ready for pickup", "released": "Released", "cancelled": "Cancelled", "revoked": "Revoked"},
                             "Events": {"upcoming": "Upcoming", "ongoing": "Ongoing", "completed": "Held", "cancelled": "Cancelled"},
                         }
                         bucket = labels.get(sacrament_type, {}).get(request_status, request_status.replace("_", " ").title())

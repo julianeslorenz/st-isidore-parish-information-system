@@ -1,12 +1,11 @@
 import { PROTOTYPE_TODAY } from '../utils/constants.js';
 
-// Workflow: prepared -> printed on parish paper and sent for signature -> signed and sealed -> released.
-export const CERT_FLOW = ['processing', 'signature', 'ready', 'released'];
+// Workflow: office verifies and prepares -> ready for pickup -> released.
+export const CERT_FLOW = ['processing', 'ready', 'released'];
 
 export const CERT_STEP_TEXT = {
-  processing: 'Record verified and certificate prepared',
-  signature: 'Printed on parish paper and sent to the parish priest for signature',
-  ready: 'Signed by the parish priest and dry seal applied',
+  processing: 'Parish register details verified and certificate prepared',
+  ready: 'Printed on the supplied parish certificate paper and ready for pickup',
   released: 'Released to the parishioner at the parish office',
 };
 
@@ -124,12 +123,11 @@ export const CERTIFICATE_FORM_FIELDS = {
 
 // Next action per status, who may perform it, and the label of the button.
 export const CERT_NEXT = {
-  processing: { to: 'signature', label: 'Send for signature', permission: 'certificate.print' },
-  signature: { to: 'ready', label: 'Mark as signed', permission: 'certificate.sign' },
+  processing: { to: 'ready', label: 'Mark ready for pickup', permission: 'certificate.prepare' },
   ready: { to: 'released', label: 'Mark as released', permission: 'certificate.release' },
 };
 
-export const CERT_STATUS_FILTERS = ['All statuses', 'Processing', 'Awaiting signature', 'Ready for release', 'Released', 'Revoked', 'Cancelled'];
+export const CERT_STATUS_FILTERS = ['All statuses', 'Processing', 'Ready for pickup', 'Released', 'Revoked', 'Cancelled'];
 
 export function makeCertificate(number, name, type, date, status) {
   const index = CERT_FLOW.indexOf(status);
@@ -140,12 +138,12 @@ export function makeCertificate(number, name, type, date, status) {
 }
 
 export const INITIAL_CERTIFICATES = [
-  makeCertificate('CC-2026-0097', 'Maria Cristina Dela Cruz', 'Marriage', 'Oct 9, 2026', 'signature'),
+  makeCertificate('CC-2026-0097', 'Maria Cristina Dela Cruz', 'Marriage', 'Oct 9, 2026', 'ready'),
   makeCertificate('BC-2026-0412', 'Lorenz Santiago', 'Baptism', 'Oct 8, 2026', 'ready'),
   makeCertificate('CF-2026-0088', 'Katrina Joy Mendoza', 'Confirmation', 'Oct 7, 2026', 'released'),
   makeCertificate('BC-2026-0411', 'Elena Navarro', 'Baptism', 'Oct 5, 2026', 'released'),
   makeCertificate('MC-2026-0031', 'Paolo Antonio Reyes', 'Marriage', 'Oct 2, 2026', 'processing'),
-  makeCertificate('CF-2026-0087', 'Lorenz Santiago', 'Confirmation', 'Sep 28, 2026', 'signature'),
+  makeCertificate('CF-2026-0087', 'Lorenz Santiago', 'Confirmation', 'Sep 28, 2026', 'ready'),
   makeCertificate('BC-2026-0405', 'Angelica Mae Bautista', 'Baptism', 'Sep 24, 2026', 'released'),
   makeCertificate('FC-2026-0019', 'Garcia family', 'Funeral', 'Sep 20, 2026', 'revoked'),
 ];
@@ -156,7 +154,6 @@ export const certificateStamp = PROTOTYPE_TODAY.stamp;
 // ---- Parishioner-facing wording. Parishioners only ever see STATUS, never a file. ----
 export const PORTAL_CERT_LABELS = {
   processing: 'Processing',
-  signature: 'Awaiting priest signature',
   ready: 'Ready for pickup',
   released: 'Released',
   revoked: 'Revoked',
@@ -165,12 +162,11 @@ export const PORTAL_CERT_LABELS = {
 
 export const PORTAL_CERT_MESSAGES = {
   processing: 'The parish office is preparing your certificate.',
-  signature: 'Your certificate is printed and waiting for the parish priest to sign it.',
-  ready: 'Signed and sealed. Please come to the parish office to pick it up.',
+  ready: 'Your certificate is prepared and ready for pickup at the parish office.',
   released: 'You received this certificate from the parish office.',
   revoked: 'This certificate is no longer valid. Please contact the parish office.',
   cancelled: 'This certificate request was cancelled. Contact the parish office if you still need it.',
 };
 
-export const PORTAL_CERT_STEPS = ['Processing', 'Signature', 'Ready', 'Released'];
+export const PORTAL_CERT_STEPS = ['Processing', 'Ready for pickup', 'Released'];
 export const PORTAL_CERT_TYPES = ['Baptism', 'Confirmation', 'Marriage', 'Funeral'];

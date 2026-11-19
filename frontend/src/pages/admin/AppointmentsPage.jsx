@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { CalendarDays, Plus } from 'lucide-react';
 import PageHeader from '../../components/ui/PageHeader.jsx';
 import Button from '../../components/ui/Button.jsx';
@@ -31,6 +31,7 @@ export default function AppointmentsPage() {
   usePageMeta('Appointments', 'Appointments');
   const { admin } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const toast = useToast();
   const isMobile = useIsMobile();
   const { appointments, addAppointment, updateAppointment } = useData();
@@ -41,6 +42,14 @@ export default function AppointmentsPage() {
   const [day, setDay] = useState(null);
   const [selectedId, setSelectedId] = useState(location.state?.select ?? null);
   const [dialog, setDialog] = useState(null); // 'new' | 'reschedule' | 'cancel' | 'sheet'
+
+  useEffect(() => {
+    const requested = base.find((appointment) => appointment.id === location.state?.select);
+    if (!requested) return;
+    setSelectedId(requested.id);
+    if (isMobile) setDialog('sheet');
+    navigate(location.pathname, { replace: true, state: null });
+  }, [base, isMobile, location.pathname, location.state, navigate]);
 
   // Priests only manage their own appointments.
   const base = useMemo(() => (isPriest ? appointments.filter((a) => a.priest === admin.name) : appointments), [appointments, isPriest, admin.name]);

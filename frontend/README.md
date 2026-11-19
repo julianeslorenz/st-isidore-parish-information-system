@@ -19,7 +19,7 @@ Admin sign in: `/admin/login` (any password works; pick a role with the demo but
 | Parish Secretary | secretary@stisidore.example | dashboard, requests, appointments, events, parishioners, certificates, priests, messages | prepare, print, release certificates |
 | Admin | admin@stisidore.example | everything incl. reports and user accounts | also revoke certificates |
 | Parish Staff | grace@stisidore.example | dashboard, requests, appointments, events, messages | no certificates |
-| Priest | fr.antonio@stisidore.example | dashboard, own appointments, certificates | **signs** certificates only |
+| Priest | fr.antonio@stisidore.example | dashboard, own appointments | no certificate access |
 
 Parishioner portal: `/login` (any email and password; the portal is always Lorenz Santiago).
 
@@ -52,13 +52,14 @@ To add a real API later, replace the functions exposed by `DataContext` / `AuthC
 
 ## Certificate workflow (important)
 
-Parishioners can only **follow status** (Processing, Awaiting priest signature, Ready for pickup, Released).
+Parishioners can only **follow status** (Processing, Ready for pickup, Released).
 There is no download, print or sign control anywhere in the portal. The portal list is derived from the
-same records the office manages, so when staff or the priest advance a certificate in admin, the
+same records the office manages, so when parish office staff advance a certificate in admin, the
 parishioner's status changes too.
 
-Staff side: prepare (Admin, Secretary) -> send for signature / print (Admin, Secretary) -> **sign (Priest, Admin)** ->
-release with ID confirmation (Admin, Secretary). Revoke is Admin only and needs a reason.
+Staff side: prepare and print on the supplied pre-signed parish paper (Admin, Secretary) -> mark ready
+for pickup (Admin, Secretary) -> release with ID confirmation (Admin, Secretary). Revoke is Admin only
+and needs a reason.
 Buttons the current role may not use are disabled with an explanatory tooltip.
 
 ## Where this differs from the prototype

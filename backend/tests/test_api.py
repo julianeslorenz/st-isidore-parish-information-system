@@ -132,17 +132,17 @@ def test_staff_role_checks_and_records_crud(client):
     assert client.delete(f"/api/v1/records/{created.json()['id']}", headers=auth(admin_token)).status_code == 204
 
 
-def test_certificate_signing_and_release_are_role_gated(client):
+def test_office_prepares_and_releases_certificates_without_priest_signing(client):
     admin_token = token_for(client, "admin@example.org")
     secretary_token = token_for(client, "secretary@example.org")
     priest_token = token_for(client, "priest@example.org")
     created = client.post("/api/v1/certificates", headers=auth(admin_token), json={"person_name": "Member Name", "certificate_type": "Baptism"})
     certificate_id = created.json()["id"]
-    assert client.patch(f"/api/v1/certificates/{certificate_id}", headers=auth(secretary_token), json={"status": "signature"}).status_code == 200
-    assert client.patch(f"/api/v1/certificates/{certificate_id}", headers=auth(secretary_token), json={"status": "ready"}).status_code == 403
-    assert client.patch(f"/api/v1/certificates/{certificate_id}", headers=auth(priest_token), json={"status": "ready"}).status_code == 200
+    assert client.patch(f"/api/v1/certificates/{certificate_id}", headers=auth(secretary_token), json={"status": "ready"}).status_code == 200
+    assert client.patch(f"/api/v1/certificates/{certificate_id}", headers=auth(priest_token), json={"status": "released"}).status_code == 403
     assert client.patch(f"/api/v1/certificates/{certificate_id}", headers=auth(secretary_token), json={"status": "released"}).status_code == 200
-    assert client.patch(f"/api/v1/certificates/{certificate_id}", headers=auth(priest_token), json={"status": "signature"}).status_code == 409
+    assert client.patch(f"/api/v1/certificates/{certificate_id}", headers=auth(priest_token), json={"status": "ready"}).status_code == 403
+    assert client.patch(f"/api/v1/certificates/{certificate_id}", headers=auth(secretary_token), json={"status": "signature"}).status_code == 422
 
 
 def test_approval_creates_parishioner_appointment(client):

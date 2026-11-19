@@ -15,7 +15,7 @@ bearer = HTTPBearer(auto_error=False)
 STAFF_ROLES = {"Admin", "Parish Secretary", "Parish Staff", "Priest"}
 DECISION_ROLES = {"Admin", "Parish Secretary", "Parish Staff"}
 OFFICE_ROLES = {"Admin", "Parish Secretary"}
-CERTIFICATE_ROLES = {"Admin", "Parish Secretary", "Priest"}
+CERTIFICATE_ROLES = {"Admin", "Parish Secretary"}
 
 
 def current_user(

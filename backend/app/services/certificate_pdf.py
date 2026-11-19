@@ -27,6 +27,11 @@ def _text(value: Any, limit: int = 220) -> str:
     return re.sub(r"\s+", " ", value).strip()[:limit]
 
 
+def _parish_name(value: Any) -> str:
+    # The printed Parish of line is short; keep town and province in the header, not over its label.
+    return _text(value).split(",", 1)[0].strip()
+
+
 def _date(value: Any) -> str:
     raw = _text(value)
     if not raw:
@@ -36,6 +41,15 @@ def _date(value: Any) -> str:
         return f"{parsed.strftime('%B')} {parsed.day}, {parsed.year}"
     except (ValueError, TypeError):
         return raw
+
+
+def _ordinal_day(value: str) -> str:
+    try:
+        number = int(value)
+    except (TypeError, ValueError):
+        return value
+    suffix = "th" if 10 < number % 100 < 14 else {1: "st", 2: "nd", 3: "rd"}.get(number % 10, "th")
+    return f"{number}{suffix}"
 
 
 def _date_parts(value: Any) -> tuple[str, str, str]:
@@ -95,7 +109,8 @@ def _draw_text(
         size -= 0.5
     pdf.setFont(font, size)
     x = x_mm * MM
-    baseline = page_height - ((y_mm + 3.0) * MM)
+    # Shift text slightly above the printed guide lines, matching the legacy FPDF baseline.
+    baseline = page_height - ((y_mm + 1.5) * MM)
     if align == "center":
         pdf.drawCentredString(x, baseline, text)
     elif align == "right":
@@ -113,7 +128,7 @@ def _draw_background(pdf: canvas.Canvas, certificate_type: str, width: float, he
 
 def _baptism(pdf: canvas.Canvas, height: float, name: str, d: dict[str, Any]) -> None:
     # Coordinates are adapted from the legacy baptismal_pdf.php (FPDF millimetres).
-    _draw_text(pdf, height, 135, 78, d.get("church"), width_mm=165, align="center", font_size=15)
+    _draw_text(pdf, height, 140, 78, _parish_name(d.get("church")), width_mm=70, align="center", font_size=11)
     _draw_text(pdf, height, 116, 102, name, width_mm=178, align="center", font="Times-Italic", font_size=19)
     _draw_text(pdf, height, 115, 108, d.get("father_name"), width_mm=160, align="center", font_size=16)
     _draw_text(pdf, height, 115, 117, d.get("mother_name"), width_mm=160, align="center", font_size=16)
@@ -131,65 +146,65 @@ def _baptism(pdf: canvas.Canvas, height: float, name: str, d: dict[str, Any]) ->
 
 
 def _confirmation(pdf: canvas.Canvas, height: float, name: str, d: dict[str, Any]) -> None:
-    # Uses the marked fields from confirmation_pdf.php and the parish's current sheet.
-    _draw_text(pdf, height, 135, 75, d.get("church"), width_mm=165, align="center", font_size=14)
-    _draw_text(pdf, height, 116, 96, name, width_mm=178, align="center", font_size=19)
-    _draw_text(pdf, height, 116, 106, d.get("father_name"), width_mm=165, align="center", font_size=16)
-    _draw_text(pdf, height, 116, 115, d.get("mother_name"), width_mm=165, align="center", font_size=16)
-    _draw_text(pdf, height, 116, 128, _date(d.get("date_of_baptism")), width_mm=170, align="center", font_size=13)
-    _draw_text(pdf, height, 116, 137, d.get("place_of_baptism"), width_mm=170, align="center", font_size=13)
-    _draw_text(pdf, height, 135, 173, d.get("church"), width_mm=155, align="center", font_size=13)
-    _draw_text(pdf, height, 116, 188, d.get("minister"), width_mm=160, align="center", font_size=13)
-    _draw_text(pdf, height, 116, 197, _date(d.get("confirmation_date")), width_mm=160, align="center", font_size=13)
-    _draw_text(pdf, height, 116, 205, d.get("sponsor_1"), width_mm=160, align="center", font_size=13)
-    _draw_text(pdf, height, 116, 215, d.get("sponsor_2"), width_mm=160, align="center", font_size=13)
-    _draw_text(pdf, height, 53, 224, d.get("book_number"), width_mm=40, font_size=12)
-    _draw_text(pdf, height, 53, 232, d.get("page_number"), width_mm=40, font_size=12)
-    _draw_text(pdf, height, 45, 240, d.get("purpose"), width_mm=67, font_size=10)
-    _draw_text(pdf, height, 51, 247, _date(d.get("date_issued")), width_mm=72, font_size=10)
+    # These two church fields refer to baptism and confirmation respectively.
+    _draw_text(pdf, height, 140, 68, _parish_name(d.get("church")), width_mm=70, align="center", font_size=11)
+    _draw_text(pdf, height, 116, 97.5, name, width_mm=178, align="center", font_size=17)
+    _draw_text(pdf, height, 116, 106.5, d.get("father_name"), width_mm=165, align="center", font_size=13)
+    _draw_text(pdf, height, 116, 115.5, d.get("mother_name"), width_mm=165, align="center", font_size=13)
+    _draw_text(pdf, height, 116, 124.5, _date(d.get("date_of_baptism")), width_mm=170, align="center", font_size=12)
+    _draw_text(pdf, height, 116, 133.5, d.get("place_of_baptism"), width_mm=170, align="center", font_size=12)
+    _draw_text(pdf, height, 135, 170.5, d.get("church"), width_mm=155, align="center", font_size=12)
+    _draw_text(pdf, height, 116, 188.5, d.get("minister"), width_mm=160, align="center", font_size=12)
+    _draw_text(pdf, height, 116, 197.5, _date(d.get("confirmation_date")), width_mm=160, align="center", font_size=12)
+    _draw_text(pdf, height, 116, 206.5, d.get("sponsor_1"), width_mm=160, align="center", font_size=12)
+    _draw_text(pdf, height, 116, 215.5, d.get("sponsor_2"), width_mm=160, align="center", font_size=12)
+    _draw_text(pdf, height, 53, 224.5, d.get("book_number"), width_mm=40, font_size=11)
+    _draw_text(pdf, height, 53, 232.5, d.get("page_number"), width_mm=40, font_size=11)
+    _draw_text(pdf, height, 45, 240.5, d.get("purpose"), width_mm=67, font_size=9)
+    _draw_text(pdf, height, 51, 247.5, _date(d.get("date_issued")), width_mm=72, font_size=9)
 
 
 def _marriage(pdf: canvas.Canvas, height: float, d: dict[str, Any]) -> None:
-    # Coordinates use the paired columns and lower register block from marriage_pdf.php.
-    _draw_text(pdf, height, 135, 82, d.get("parish", "St. Isidore the Farmer Parish"), width_mm=165, align="center", font_size=15)
-    _draw_text(pdf, height, 27, 102, d.get("groom_name"), width_mm=80, font_size=12)
-    _draw_text(pdf, height, 111, 102, d.get("bride_name"), width_mm=82, font_size=12)
-    _draw_text(pdf, height, 27, 119, _date(d.get("groom_birthday")), width_mm=43, font_size=9)
-    _draw_text(pdf, height, 72, 119, d.get("groom_age"), width_mm=20, font_size=11)
-    _draw_text(pdf, height, 111, 119, _date(d.get("bride_birthday")), width_mm=43, font_size=9)
-    _draw_text(pdf, height, 157, 119, d.get("bride_age"), width_mm=20, font_size=11)
-    _draw_text(pdf, height, 50, 132, d.get("groom_father_name"), width_mm=54, font_size=11)
-    _draw_text(pdf, height, 50, 142, d.get("groom_mother_name"), width_mm=54, font_size=11)
-    _draw_text(pdf, height, 40, 154, d.get("groom_parent_address"), width_mm=64, font_size=10)
-    _draw_text(pdf, height, 110, 132, d.get("bride_father_name"), width_mm=80, font_size=11)
-    _draw_text(pdf, height, 110, 142, d.get("bride_mother_name"), width_mm=80, font_size=11)
-    _draw_text(pdf, height, 110, 154, d.get("bride_parent_address"), width_mm=80, font_size=10)
+    # Keep every field on the same source-paper row used by marriage_pdf.php.
+    _draw_text(pdf, height, 143, 77.5, _parish_name(d.get("parish", "St. Isidore the Farmer Parish")), width_mm=68, align="center", font_size=11)
+    _draw_text(pdf, height, 27, 103.5, d.get("groom_name"), width_mm=80, font_size=11)
+    _draw_text(pdf, height, 111, 103.5, d.get("bride_name"), width_mm=82, font_size=11)
+    _draw_text(pdf, height, 27, 110.5, _date(d.get("groom_birthday")), width_mm=43, font_size=8)
+    _draw_text(pdf, height, 72, 110.5, d.get("groom_age"), width_mm=20, font_size=9)
+    _draw_text(pdf, height, 111, 110.5, _date(d.get("bride_birthday")), width_mm=43, font_size=8)
+    _draw_text(pdf, height, 157, 110.5, d.get("bride_age"), width_mm=20, font_size=9)
+    _draw_text(pdf, height, 50, 117.5, d.get("groom_father_name"), width_mm=54, font_size=9)
+    _draw_text(pdf, height, 50, 123.5, d.get("groom_mother_name"), width_mm=54, font_size=9)
+    _draw_text(pdf, height, 40, 130.5, d.get("groom_parent_address"), width_mm=64, font_size=8)
+    _draw_text(pdf, height, 135, 117.5, d.get("bride_father_name"), width_mm=57, font_size=9, min_font_size=6.5)
+    _draw_text(pdf, height, 135, 123.5, d.get("bride_mother_name"), width_mm=57, font_size=9, min_font_size=6.5)
+    _draw_text(pdf, height, 135, 130.5, d.get("bride_parent_address"), width_mm=57, font_size=8, min_font_size=6.5)
     day, month, year = _date_parts(d.get("marriage_date"))
-    _draw_text(pdf, height, 70, 180, day, width_mm=28, font_size=12)
-    _draw_text(pdf, height, 45, 180, month, width_mm=55, font_size=12, align="center")
-    _draw_text(pdf, height, 118, 180, year, width_mm=30, font_size=12, align="center")
-    _draw_text(pdf, height, 80, 190, d.get("marriage_place"), width_mm=120, font_size=12)
-    _draw_text(pdf, height, 80, 210, d.get("priest"), width_mm=125, font_size=12)
-    _draw_text(pdf, height, 85, 219, d.get("selected_ninong"), width_mm=120, font_size=11)
-    _draw_text(pdf, height, 80, 226, d.get("selected_ninang"), width_mm=125, font_size=11)
-    _draw_text(pdf, height, 93, 234, d.get("marriage_license_no"), width_mm=110, font_size=10)
-    _draw_text(pdf, height, 145, 234, d.get("license_issued_at"), width_mm=55, font_size=9)
-    _draw_text(pdf, height, 130, 240, _date(d.get("license_issued_on")), width_mm=73, font_size=9)
-    _draw_text(pdf, height, 186, 254, d.get("index_number"), width_mm=20, font_size=12)
-    _draw_text(pdf, height, 111, 254, d.get("page_number"), width_mm=20, font_size=12)
-    _draw_text(pdf, height, 151, 254, d.get("book_number"), width_mm=20, font_size=12)
+    _draw_text(pdf, height, 70, 150.5, _ordinal_day(day), width_mm=28, font_size=10)
+    _draw_text(pdf, height, 130, 150.5, month, width_mm=55, font_size=10, align="center")
+    _draw_text(pdf, height, 170, 150.5, year, width_mm=30, font_size=10, align="center")
+    _draw_text(pdf, height, 80, 156.5, d.get("marriage_place"), width_mm=120, font_size=10)
+    _draw_text(pdf, height, 80, 176.5, d.get("priest"), width_mm=125, font_size=10)
+    _draw_text(pdf, height, 85, 182.5, d.get("selected_ninong"), width_mm=120, font_size=9)
+    _draw_text(pdf, height, 80, 189.5, d.get("selected_ninang"), width_mm=125, font_size=9)
+    _draw_text(pdf, height, 93, 196.5, d.get("marriage_license_no"), width_mm=110, font_size=8)
+    _draw_text(pdf, height, 145, 196.5, d.get("license_issued_at"), width_mm=55, font_size=8)
+    _draw_text(pdf, height, 130, 202.5, _date(d.get("license_issued_on")), width_mm=73, font_size=8)
+    _draw_text(pdf, height, 186, 214.5, d.get("index_number"), width_mm=20, font_size=10)
+    _draw_text(pdf, height, 111, 214.5, d.get("page_number"), width_mm=20, font_size=10)
+    _draw_text(pdf, height, 151, 214.5, d.get("book_number"), width_mm=20, font_size=10)
     issued_day, issued_month, issued_year = _date_parts(d.get("date_issued"))
-    _draw_text(pdf, height, 85, 268, issued_day, width_mm=25, font_size=12)
-    _draw_text(pdf, height, 125, 268, issued_month, width_mm=50, font_size=12, align="center")
-    _draw_text(pdf, height, 183, 268, issued_year, width_mm=26, font_size=12)
-    _draw_text(pdf, height, 108, 273, d.get("purpose"), width_mm=90, font_size=10)
+    _draw_text(pdf, height, 77, 241.5, _ordinal_day(issued_day), width_mm=25, font_size=10)
+    _draw_text(pdf, height, 120, 241.5, issued_month, width_mm=50, font_size=10, align="center")
+    _draw_text(pdf, height, 176, 241.5, issued_year[-2:], width_mm=18, font_size=10)
+    _draw_text(pdf, height, 50, 250.5, d.get("purpose"), width_mm=120, font_size=9)
 
 
 def _funeral(pdf: canvas.Canvas, height: float, d: dict[str, Any], fallback_name: str) -> None:
     # The funeral sheet is landscape; field locations follow funeral_pdf.php and the supplied scan.
     _draw_text(pdf, height, 200, 70, d.get("deceased_full_name") or fallback_name, width_mm=135, align="center", font="Times-Roman", font_size=22, min_font_size=11)
     day, month, year = _date_parts(d.get("date_of_death"))
-    _draw_text(pdf, height, 164, 85, day, width_mm=27, align="center", font="Times-Bold", font_size=13)
+    _draw_text(pdf, height, 164, 85, _ordinal_day(day), width_mm=27, align="center", font="Times-Bold", font_size=12)
     _draw_text(pdf, height, 215, 85, month, width_mm=55, align="center", font="Times-Bold", font_size=13)
     _draw_text(pdf, height, 263, 85, year, width_mm=25, align="center", font="Times-Bold", font_size=13)
     _draw_text(pdf, height, 137, 105, d.get("cause_of_death"), width_mm=124, font="Helvetica", font_size=10)

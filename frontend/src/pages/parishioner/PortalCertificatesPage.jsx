@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Clock, MessageSquare, Plus, ShieldCheck } from 'lucide-react';
 import PortalPage from '../../components/layout/PortalPage.jsx';
 import PageHeader from '../../components/ui/PageHeader.jsx';
@@ -17,8 +18,8 @@ import { useToast } from '../../context/ToastContext.jsx';
 
 /*
  * Parishioners can only FOLLOW the certificate workflow. There is deliberately no download,
- * print or signing control anywhere on this page: official certificates are printed on parish
- * paper, signed by the parish priest and released by the parish office.
+ * print or signing control anywhere on this page: the parish office prepares certificates on
+ * the supplied pre-signed paper and releases them to parishioners.
  */
 function StatusDetails({ certificate, onClose }) {
   return (
@@ -60,16 +61,24 @@ function RequestCertificateModal({ onClose, onSubmit }) {
 }
 
 export default function PortalCertificatesPage() {
+  const [params, setParams] = useSearchParams();
   const { parishioner } = useAuth();
   const { certificates, addCertificate } = useData();
   const toast = useToast();
   const [detail, setDetail] = useState(null);
   const [requesting, setRequesting] = useState(false);
+  const requestedCertificateId = params.get('certificateId');
 
   // Same records the parish office manages, filtered to this parishioner.
   const mine = certificates.filter((c) => c.name === parishioner.name);
   const hasMarriage = mine.some((c) => c.type === 'Marriage');
   const detailCertificate = mine.find((c) => c.number === detail);
+  useEffect(() => {
+    const certificate = mine.find((item) => String(item.id) === requestedCertificateId);
+    if (!certificate) return;
+    setDetail(certificate.number);
+    setParams((current) => { const next = new URLSearchParams(current); next.delete('certificateId'); return next; }, { replace: true });
+  }, [certificates, requestedCertificateId, parishioner.name, setParams]);
 
   return (
     <PortalPage>

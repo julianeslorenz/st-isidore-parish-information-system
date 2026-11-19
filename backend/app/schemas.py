@@ -173,7 +173,7 @@ class RecordPatch(BaseModel):
 
 
 class CertificateUpdate(BaseModel):
-    status: Literal["processing", "signature", "ready", "released", "cancelled", "revoked"]
+    status: Literal["processing", "ready", "released", "cancelled", "revoked"]
     note: str | None = Field(default=None, max_length=500)
 
 

@@ -48,7 +48,7 @@ export function DataProvider({ children }) {
         const conversation = grouped.get(peerId);
         conversation.archived = Boolean(m.archived);
         conversation.unread = Number(m.unread_count || 0);
-        conversation.messages.push({ from: m.sender_id === me.id ? 'out' : 'in', text: m.body, time: new Date(m.created_at).toLocaleString() });
+        conversation.messages.push({ from: m.sender_id === me.id ? 'out' : 'in', text: m.body, createdAt: m.created_at, time: new Date(m.created_at).toLocaleString() });
       }
       const conversations = [...grouped.values()];
       for (const contact of contacts) if (!grouped.has(contact.id)) conversations.push({ id: contact.id, name: contact.name, unread: 0, archived: false, messages: [] });
@@ -122,7 +122,7 @@ export function DataProvider({ children }) {
   const updateCertificateDetails = useCallback((id, name, details) => mutate(() => patch(`/certificates/${id}/details`, { person_name: name, details })), [mutate]);
   const advanceCertificate = useCallback((number) => {
     const c = data.certificates.find((x) => x.number === number);
-    const next = { processing: 'signature', signature: 'ready', ready: 'released' }[c?.status];
+    const next = { processing: 'ready', ready: 'released' }[c?.status];
     return next ? mutate(() => patch(`/certificates/${c.id}`, { status: next })) : Promise.resolve(null);
   }, [data.certificates, mutate]);
   const cancelCertificate = useCallback((number) => {

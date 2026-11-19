@@ -2,13 +2,13 @@ export const PARISH = {
   name: 'St. Isidore Parish',
   address: 'Poblacion I, Agdangan, Quezon 4304, Philippines',
   phone: '(049) 555 0100',
-  email: 'parish.office@stisidore.example',
+  email: 'agdanganstisidore@gmail.com',
 };
 
 export const MASS_SCHEDULE = [
-  ['Saturday (anticipated)', '5:00 PM'],
-  ['Sunday', '6:00 AM, 8:00 AM, 5:00 PM'],
-  ['Weekdays', '6:00 AM'],
+  ['Tuesday, Thursday, Saturday', '4:00 PM'],
+  ['Sunday', '7:00 AM, 9:00 AM, 3:00 PM'],
+  ['Monday, Wednesday, Friday', '6:30 AM'],
 ];
 
 // Shorter labels used in the parishioner dashboard card.
@@ -19,9 +19,9 @@ export const PORTAL_MASS_SCHEDULE = [
 ];
 
 export const OFFICE_HOURS = [
-  ['Monday to Friday', '8:00 AM to 5:00 PM'],
+  ['Tuesday to Friday', '8:00 AM to 5:00 PM'],
   ['Saturday', '8:00 AM to 12:00 NN'],
-  ['Sunday', 'Closed (Masses only)'],
+  ['Sunday', '8:00 AM to 5:00 PM'],
 ];
 
 export const REGULAR_ACTIVITIES = [
@@ -42,8 +42,3 @@ export const PUBLIC_NAV = [
   { to: '/contact', label: 'Contact' },
 ];
 
-export const NOTIFICATIONS = [
-  { id: 1, text: 'New baptism request from Maria Cristina Dela Cruz', when: '12 minutes ago', unread: true },
-  { id: 2, text: 'Appointment confirmed with Fr. Miguel for Oct 25', when: '1 hour ago', unread: true },
-  { id: 3, text: '3 certificates are awaiting signature', when: 'Yesterday', unread: false },
-];

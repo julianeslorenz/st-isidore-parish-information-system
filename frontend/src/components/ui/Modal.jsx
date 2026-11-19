@@ -56,7 +56,7 @@ export default function Modal({ open, onClose, title, children, footer, size = '
         tabIndex={-1}
         className={cn(
           'relative flex max-h-full w-full animate-pop flex-col rounded-2xl bg-white shadow-modal outline-none',
-          size === 'lg' ? 'max-w-[680px]' : 'max-w-[520px]',
+          size === 'xl' ? 'max-w-[960px]' : size === 'lg' ? 'max-w-[680px]' : 'max-w-[520px]',
           'max-sm:max-w-none max-sm:animate-none max-sm:rounded-b-none max-sm:rounded-t-[20px]',
         )}
       >
@@ -66,7 +66,7 @@ export default function Modal({ open, onClose, title, children, footer, size = '
         </div>
         <div ref={bodyRef} className="overflow-auto p-5">{children}</div>
         {footer && (
-          <div className="flex justify-end gap-2.5 rounded-b-2xl border-t border-line bg-paper-2 px-5 py-3.5 max-sm:flex-wrap max-sm:rounded-b-none max-sm:[&>*]:flex-1">
+          <div className="flex flex-wrap justify-end gap-2.5 rounded-b-2xl border-t border-line bg-paper-2 px-5 py-3.5 max-sm:rounded-b-none max-sm:[&>*]:flex-1">
             {footer}
           </div>
         )}

@@ -79,7 +79,6 @@ def test_certificate_pdf_is_unavailable_after_certificate_leaves_preparation(cli
         headers=auth(admin_token),
         json={"person_name": "Mika Santos", "certificate_type": "Baptism", "details": {"baptismal_date": "2020-05-10", "church": "St. Isidore Parish"}},
     ).json()
-    assert client.patch(f"/api/v1/certificates/{created['id']}", headers=auth(admin_token), json={"status": "signature"}).status_code == 200
     assert client.patch(f"/api/v1/certificates/{created['id']}", headers=auth(admin_token), json={"status": "ready"}).status_code == 200
     response = client.get(f"/api/v1/certificates/{created['id']}/pdf", headers=auth(admin_token))
     assert response.status_code == 409

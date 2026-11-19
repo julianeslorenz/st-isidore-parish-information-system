@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { CalendarDays } from 'lucide-react';
 import PortalPage from '../../components/layout/PortalPage.jsx';
 import PageHeader from '../../components/ui/PageHeader.jsx';
@@ -14,16 +15,22 @@ import { useToast } from '../../context/ToastContext.jsx';
 import { useData } from '../../context/DataContext.jsx';
 
 export default function PortalAppointmentsPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const toast = useToast();
   const [rescheduling, setRescheduling] = useState(false);
   const [preferredDate, setPreferredDate] = useState('');
   const [reason, setReason] = useState('');
   const { appointments, requestReschedule } = useData();
+  useEffect(() => {
+    if (!location.state?.select || !appointments.some((appointment) => appointment.id === location.state.select)) return;
+    navigate(location.pathname, { replace: true, state: null });
+  }, [appointments, location.pathname, location.state, navigate]);
   const scheduled = appointments.filter((a) => !['completed', 'cancelled'].includes(a.status));
-  const first = scheduled[0];
+  const first = appointments.find((a) => a.id === location.state?.select) || scheduled[0];
   const date = first ? new Date(first.start_at) : null;
   const featured = first ? { ...first, title: first.title || first.type, month: date.toLocaleString(undefined, { month: 'short' }), weekday: date.toLocaleString(undefined, { weekday: 'long' }), time: `${date.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}, ${first.time}`, place: first.details?.place || 'St. Isidore Parish Church', priest: first.priest || 'Parish office', people: first.who || '', status: first.status } : null;
-  const others = scheduled.slice(1).map((a) => { const d = new Date(a.start_at); return { ...a, month: d.toLocaleString(undefined, { month: 'short' }), day: d.getDate(), meta: `${a.time}, ${a.priest || 'Parish office'}` }; });
+  const others = scheduled.filter((a) => a.id !== first?.id).map((a) => { const d = new Date(a.start_at); return { ...a, month: d.toLocaleString(undefined, { month: 'short' }), day: d.getDate(), meta: `${a.time}, ${a.priest || 'Parish office'}` }; });
   const bring = first?.details?.requirements || [];
   const submitReschedule = async () => {
     if (!first || !preferredDate || !reason.trim()) return;

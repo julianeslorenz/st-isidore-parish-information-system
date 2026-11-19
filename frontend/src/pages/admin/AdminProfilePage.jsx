@@ -33,7 +33,7 @@ export default function AdminProfilePage() {
         <Card>
           <CardHeader title="Notifications" />
           <CardBody className="flex flex-col gap-3.5">
-            {['New requests', 'Certificates awaiting signature', 'New messages'].map((label) => (
+            {['New requests', 'Certificates ready for pickup', 'New messages'].map((label) => (
               <div key={label} className="flex items-center gap-3"><span>{label}</span><span className="flex-1" /><Toggle label={label} defaultChecked /></div>
             ))}
           </CardBody>

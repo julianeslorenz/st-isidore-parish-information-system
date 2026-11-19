@@ -23,7 +23,7 @@ const SWATCHES = [
   ['Off-white', colors.paper, 'Page background'], ['Warm gray', colors.line, 'Borders'], ['Charcoal', colors.ink, 'Text'],
   ['Approved', colors.ok, 'Success'], ['Pending', colors.warn, 'Waiting'], ['Rejected', colors.bad, 'Errors'],
 ];
-const STATUSES = ['pending', 'approved', 'rescheduled', 'completed', 'rejected', 'confirmed', 'signature', 'draft'];
+const STATUSES = ['pending', 'approved', 'rescheduled', 'completed', 'rejected', 'confirmed', 'ready', 'draft'];
 const ADAPTATIONS = [
   ['Admin sidebar', 'Fixed left sidebar', 'Slide-in drawer plus bottom tab bar'],
   ['Parishioner navigation', 'Top navbar', 'Bottom tab bar with 5 destinations'],

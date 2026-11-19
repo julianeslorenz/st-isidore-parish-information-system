@@ -9,12 +9,11 @@ export const STATUS_LABELS = {
   confirmed: 'Confirmed',
   issued: 'Issued',
   released: 'Released',
-  signature: 'Awaiting signature',
   revoked: 'Revoked',
   active: 'Active',
   inactive: 'Inactive',
   draft: 'Draft',
   processing: 'Processing',
-  ready: 'Ready for release',
+  ready: 'Ready for pickup',
   cancelled: 'Cancelled',
 };

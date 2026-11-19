@@ -42,6 +42,19 @@ export default function AdminMessagesPage() {
   const [composeTo, setComposeTo] = useState(location.state?.compose ?? null);
   const [composing, setComposing] = useState(!!location.state?.compose);
 
+  useEffect(() => {
+    const requestedId = Number(new URLSearchParams(location.search).get('conversationId'));
+    if (requestedId && adminConversations.some((conversation) => conversation.id === requestedId)) {
+      setFilter('inbox');
+      setThreadOpen(true);
+      if (activeId !== requestedId) {
+        setActiveId(requestedId);
+        openAdminConversation(requestedId);
+      }
+      navigate(location.pathname, { replace: true, state: location.state });
+    }
+  }, [location.search, location.pathname, location.state, adminConversations, activeId, openAdminConversation, navigate]);
+
   // "Message" on a parishioner profile opens the composer once; drop the router state afterwards.
   useEffect(() => { if (location.state?.compose) navigate(location.pathname, { replace: true, state: null }); }, [location, navigate]);
 

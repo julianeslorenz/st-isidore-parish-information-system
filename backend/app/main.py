@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sqlalchemy import update
 from sqlalchemy.exc import IntegrityError
 
 from app.api.routes import auth, data
@@ -15,6 +16,14 @@ from app import models  # Register table metadata before optional development ta
 async def lifespan(_: FastAPI):
     if settings.auto_create_tables:
         Base.metadata.create_all(bind=engine)
+    # Convert records from the retired priest-signature workflow to the
+    # equivalent office-ready state so existing certificates remain usable.
+    with engine.begin() as connection:
+        connection.execute(
+            update(models.Certificate)
+            .where(models.Certificate.status == "signature")
+            .values(status="ready")
+        )
     yield
 
 

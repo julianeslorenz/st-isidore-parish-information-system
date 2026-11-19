@@ -15,7 +15,6 @@ const STATUS_STYLES = {
   released: 'bg-info-bg text-info',
   processing: 'bg-info-bg text-info',
   rescheduled: 'bg-vio-bg text-vio',
-  signature: 'bg-vio-bg text-vio',
   draft: 'bg-mute-bg text-mute',
   inactive: 'bg-mute-bg text-mute',
   cancelled: 'bg-mute-bg text-mute',

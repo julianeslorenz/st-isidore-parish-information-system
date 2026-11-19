@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Award, Check, Eye, FileText, Pencil, Plus, Printer } from 'lucide-react';
 import PageHeader from '../../components/ui/PageHeader.jsx';
 import Button from '../../components/ui/Button.jsx';
@@ -23,9 +24,9 @@ import { CERTIFICATE_FORM_FIELDS, CERT_NEXT, CERT_STATUS_FILTERS, CERT_TYPES } f
 import { STATUS_LABELS } from '../../data/statuses.js';
 import { openPdf } from '../../api/client.js';
 
-const LIVE = ['processing', 'signature']; // still being prepared, so it can be printed or cancelled
+const LIVE = ['processing']; // still being prepared, so it can be printed or cancelled
 const STATUS_BY_LABEL = Object.fromEntries(Object.entries(STATUS_LABELS).map(([key, label]) => [label, key]));
-const NEXT_HINT = { 'certificate.sign': 'Only a priest can sign a certificate', 'certificate.print': 'Only office staff can send a certificate for signature', 'certificate.release': 'Only office staff can release a certificate' };
+const NEXT_HINT = { 'certificate.prepare': 'Only parish office staff can prepare certificates', 'certificate.print': 'Only parish office staff can print certificates', 'certificate.release': 'Only parish office staff can release certificates' };
 
 function RevokeModal({ onClose, onConfirm }) {
   const [reason, setReason] = useState('');
@@ -86,6 +87,7 @@ function PrepareModal({ certificate, onClose, onCreate, onUpdate }) {
 }
 
 export default function CertificatesPage() {
+  const [params, setParams] = useSearchParams();
   usePageMeta('Certificates', 'Records');
   const { admin } = useAuth();
   const toast = useToast();
@@ -95,6 +97,13 @@ export default function CertificatesPage() {
   const [statusLabel, setStatusLabel] = useState('All statuses');
   const [viewing, setViewing] = useState(null); // certificate number
   const [dialog, setDialog] = useState(null); // { kind, number }
+  const requestedCertificateId = params.get('certificateId');
+  useEffect(() => {
+    const certificate = certificates.find((item) => String(item.id) === requestedCertificateId);
+    if (!certificate) return;
+    setViewing(certificate.number);
+    setParams((current) => { const next = new URLSearchParams(current); next.delete('certificateId'); return next; }, { replace: true });
+  }, [certificates, requestedCertificateId, setParams]);
 
   const statusKey = STATUS_BY_LABEL[statusLabel];
   const rows = useMemo(() => certificates.filter((c) => {
@@ -110,6 +119,7 @@ export default function CertificatesPage() {
   const advance = (c) => {
     const next = CERT_NEXT[c.status];
     if (!next) return;
+    if (c.status === 'processing') { setDialog({ kind: 'ready', number: c.number }); return; }
     if (c.status === 'ready') { setDialog({ kind: 'release', number: c.number }); return; }
     advanceCertificate(c.number, admin.name);
     toast(`${c.number}: ${STATUS_LABELS[next.to]}`);
@@ -147,16 +157,16 @@ export default function CertificatesPage() {
     ) },
   ];
 
-  const stats = [['processing', 'Processing', FileText], ['signature', 'Awaiting signature', Pencil], ['ready', 'Ready for release', Check], ['released', 'Released', Award]];
+  const stats = [['processing', 'Processing', FileText], ['ready', 'Ready for pickup', Check], ['released', 'Released', Award]];
 
   return (
     <>
       <PageHeader
         title="Certificates"
-        subtitle="Prepare, print, sign and release. Official certificates are printed on parish paper, dry-sealed and signed by the parish priest."
+        subtitle="Verify the register details, print on the parish's pre-signed certificate paper, then release it at the parish office."
         actions={can(admin, 'certificate.prepare') && <Button onClick={() => setDialog({ kind: 'prepare' })}><Plus size={17} aria-hidden="true" /> Prepare certificate</Button>}
       />
-      <div className="mb-5 grid grid-cols-4 gap-4 max-lg:grid-cols-2 max-md:gap-3">
+      <div className="mb-5 grid grid-cols-3 gap-4 max-lg:grid-cols-2 max-md:gap-3">
         {stats.map(([key, label, icon]) => (
           <StatCard key={key} icon={icon} value={count(key)} label={label} active={statusKey === key} onClick={() => setStatusLabel(STATUS_LABELS[key])} />
         ))}
@@ -181,7 +191,7 @@ export default function CertificatesPage() {
       {viewed && (
         <Modal
           open
-          size="lg"
+          size="xl"
           onClose={() => setViewing(null)}
           title={`Certificate ${viewed.number}`}
           footer={(
@@ -198,16 +208,20 @@ export default function CertificatesPage() {
           )}
         >
           <div className="mb-2.5"><StatusBadge status={viewed.status} /></div>
-          <Note className="mb-3">Preview only. The official certificate is printed on parish paper, signed by the parish priest and sealed by the parish office.</Note>
-          <CertificatePreview type={viewed.type} name={viewed.name} number={viewed.number} date={viewed.date} />
+          <Note className="mb-3">The preview shows the filled text over the parish's signed form. Use Text only to print on the supplied physical paper; use Report copy to check the full background and text together.</Note>
+          <CertificatePreview certificateId={viewed.id} type={viewed.type} status={viewed.status} />
           <h4 className="mb-2 mt-[18px]">History</h4>
           <Timeline items={viewed.history.map((h) => ({ state: 'done', content: h.text, meta: h.date }))} />
         </Modal>
       )}
 
+      <ConfirmModal open={dialog?.kind === 'ready'} onClose={close} cancelLabel="Not yet" confirmLabel="Mark ready for pickup" title="Certificate prepared and printed?"
+        onConfirm={() => { advanceCertificate(target.number, admin.name); toast(`${target.number}: ${STATUS_LABELS.ready}`); close(); }}>
+        {target && <p>Confirm that <b>{target.name}</b>'s register details were verified and the final certificate was printed on the parish paper that already carries the priest's signature.</p>}
+      </ConfirmModal>
       <ConfirmModal open={dialog?.kind === 'release'} onClose={close} cancelLabel="Not yet" confirmLabel="Mark as released" title="Release this certificate?"
         onConfirm={() => { advanceCertificate(target.number, admin.name); toast(`${target.number}: ${STATUS_LABELS.released}`); close(); }}>
-        {target && <p>Confirm that <b>{target.name}</b> or an authorized representative presented a valid ID and received the signed, sealed certificate.</p>}
+        {target && <p>Confirm that <b>{target.name}</b> or an authorized representative presented a valid ID and received the completed certificate.</p>}
       </ConfirmModal>
       <ConfirmModal open={dialog?.kind === 'cancel'} onClose={close} tone="danger" cancelLabel="Keep" confirmLabel="Cancel certificate" title="Cancel this certificate?"
         onConfirm={() => { cancelCertificate(target.number, admin.name); close(); toast('Certificate cancelled'); }}>
