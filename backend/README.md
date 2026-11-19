@@ -11,10 +11,19 @@ FastAPI REST service for the React parish information system. MySQL is the inten
    py -m venv .venv
    .\.venv\Scripts\Activate.ps1
    pip install -r requirements.txt
-   Copy-Item .env.example .env
    ```
 
-3. Edit `.env`. Set `DATABASE_URL` to the database you created, provide a random `JWT_SECRET_KEY` of at least 32 characters, and set `AUTO_CREATE_TABLES=true` for local development. Configure `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, and `SMTP_FROM_EMAIL` to enable verification and password-reset emails. The verification link points to `FRONTEND_BASE_URL` and expires after 24 hours. Never commit `.env` or share the SMTP password.
+3. Create `backend/.env` (do not overwrite an existing file). Set `DATABASE_URL` to the database and least-privilege user you created, provide a random `JWT_SECRET_KEY` of at least 32 characters, and set `AUTO_CREATE_TABLES=true` for local development. For example, from the project root in PowerShell:
+
+   ```powershell
+   @(
+     "DATABASE_URL=mysql+pymysql://parish_app:YOUR_DB_PASSWORD@127.0.0.1:3306/st_isidore_api?charset=utf8mb4",
+     "JWT_SECRET_KEY=" + [guid]::NewGuid().ToString() + [guid]::NewGuid().ToString(),
+     "AUTO_CREATE_TABLES=true"
+   ) | Set-Content backend/.env
+   ```
+
+   Replace `YOUR_DB_PASSWORD` with the password for the MySQL application user. Configure `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, and `SMTP_FROM_EMAIL` to enable verification and password-reset emails. The verification link points to `FRONTEND_BASE_URL` and expires after 24 hours. Never commit `.env` or share the SMTP password.
 4. Create the first staff account interactively (the password is not saved in a file). For password-reset email, also configure `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, and `SMTP_FROM_EMAIL` in `.env`:
 
    ```powershell
